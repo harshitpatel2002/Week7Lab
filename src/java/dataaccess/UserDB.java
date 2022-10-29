@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import models.Role;
 import models.User;
+import services.RoleService;
 
 /**
  *
@@ -29,7 +30,7 @@ public class UserDB
         PreparedStatement ps = null;
         ResultSet rs = null;
         
-        String sql = "SELECT * FROM user";
+        String sql = "SELECT email, first_name, last_name, password, role FROM user;";
         
         try {
             ps = con.prepareStatement(sql);
@@ -39,7 +40,13 @@ public class UserDB
                 String firstname = rs.getString(2);
                 String lastname = rs.getString(3);
                 String password = rs.getString(4);
-                Role role = (Role) rs.getObject(5);
+                int role_id = rs.getInt(5);
+                
+                RoleService rs1 = new RoleService();
+                
+                String role_name = rs1.getRoleName(role_id);
+                
+                Role role = new Role(role_id, role_name);
                 
                 User user = new User(email, firstname, lastname, password, role);
                 
@@ -71,7 +78,12 @@ public class UserDB
                 String firstname = rs.getString(2);
                 String lastname = rs.getString(3);
                 String password = rs.getString(4);
-                Role role = (Role) rs.getObject(5);
+                int role_id = rs.getInt(5);
+                
+                RoleService rs1 = new RoleService();
+                String role_name = rs1.getRoleName(role_id);
+                
+                Role role = new Role(role_id, role_name);
                 user = new User(email, firstname, lastname, password, role);
             }
         } finally {
@@ -87,7 +99,7 @@ public class UserDB
         ConnectionPool cp = ConnectionPool.getInstance();
         Connection con = cp.getConnection();
         PreparedStatement ps = null;
-        String sql = "INSERT INTO user (email, firstname, lastname, password, role) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO user (email, first_name, last_name, password, role) VALUES (?, ?, ?, ?, ?)";
         
         try {
             ps = con.prepareStatement(sql);
@@ -96,7 +108,7 @@ public class UserDB
             ps.setString(2, user.getFirstname());
             ps.setString(3, user.getLastname());
             ps.setString(4, user.getPassword());
-            ps.setInt(5, user.getRole().getId());
+            ps.setInt(5, user.getRole().getId());//error lies over here
             ps.executeUpdate();
         } finally {
             DBUtil.closePreparedStatement(ps);
@@ -108,7 +120,7 @@ public class UserDB
         ConnectionPool cp = ConnectionPool.getInstance();
         Connection con = cp.getConnection();
         PreparedStatement ps = null;
-        String sql = "UPDATE user SET email=?, firstname=?, lastname=?, password=?, role=?,  WHERE note_id=?";
+        String sql = "UPDATE user SET email=?, first_name=?, last_name=?, password=?, role=?,  WHERE note_id=?";
         
         try {
             ps = con.prepareStatement(sql);
@@ -124,7 +136,7 @@ public class UserDB
         }
     }
 
-    public void delete(User user) throws Exception {
+    public void delete(String email) throws Exception {
         ConnectionPool cp = ConnectionPool.getInstance();
         Connection con = cp.getConnection();
         PreparedStatement ps = null;
@@ -132,17 +144,11 @@ public class UserDB
         
         try {
             ps = con.prepareStatement(sql);
-            ps.setString(1, user.getEmail());
+            ps.setString(1, email);
             ps.executeUpdate();
         } finally {
             DBUtil.closePreparedStatement(ps);
             cp.freeConnection(con);
         }
-    }
-    
-    public static void main(String[] args) throws Exception
-    {
-        UserDB db = new UserDB();
-        db.getAll();
     }
 }

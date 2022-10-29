@@ -19,24 +19,22 @@ import services.UserService;
  */
 public class UserServlet extends HttpServlet
 {
+    
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
-//        Whenever someone visits the page all the users in the database should be shown
-        
-        UserService us = new UserService();
-        
         try
         {
-            List<User> users = us.getAll();
-            request.setAttribute("users", users);
+            showUsers(request, response);
+            String action = request.getParameter("action");
+            if (action != null && action.equals("delete"))
+                doPost(request, response);
         } catch (Exception ex)
         {
             Logger.getLogger(UserServlet.class.getName()).log(Level.SEVERE, null, ex);
-            request.setAttribute("message", "error");
+            request.setAttribute("message", "Data not found in the database");
         }
-        
         getServletContext().getRequestDispatcher("/WEB-INF/users.jsp")
             .forward(request, response);
     }
@@ -47,20 +45,40 @@ public class UserServlet extends HttpServlet
     {
         UserService us = new UserService();
         RoleService rs = new RoleService();
+        
+        String action = request.getParameter("action");
+        
         try
         {
-            if (request.getParameter("action").equals("add"))
-                addUser(request, response, us, rs);
-            
-            if (request.getParameter("action").equals("edit"))
-                editUser(request, response, us, rs);
-            
-            if (request.getParameter("action").equals("delete"))
-                deleteUser(request, response, us, rs);
+            switch (action)
+            {
+                case "add":
+                    addUser(request, response, us, rs);
+                    break;
+                case "edit":
+                    editUser(request, response, us, rs);
+                    break;
+                case "delete":
+                    deleteUser(request, response, us, rs);
+                    break;
+                default:
+                    break;
+            }
         } catch (Exception ex)
         {
             Logger.getLogger(UserServlet.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    protected void showUsers(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException, Exception
+    {
+        UserService us = new UserService();
+        List<User> users = us.getAll();
+        if (users.isEmpty())
+            request.setAttribute("zero", "No users exist in the database");
+        else
+            request.setAttribute("users", users);
     }
     
     protected void addUser(HttpServletRequest request, HttpServletResponse response, UserService us, RoleService rs)
@@ -71,21 +89,26 @@ public class UserServlet extends HttpServlet
         String firstname = request.getParameter("firstname");
         String lastname = request.getParameter("lastname");
         String password = request.getParameter("password");
-        String role = request.getParameter("role");
+        String role_name = request.getParameter("role");
         
-        if (email.equals("") || firstname.equals("") || lastname.equals("") || password.equals("") || role.equals(""))
+        if (email == null || firstname == null || lastname == null || password == null || role_name == null || email.equals("") || firstname.equals("") || lastname.equals("") || password.equals("") || role_name.equals(""))
         {
-            request.setAttribute("empty", "Please fill out all the fields");
+            request.setAttribute("emptyInput", "Please fill out all the fields");
+            showUsers(request, response);
             getServletContext().getRequestDispatcher("/WEB-INF/users.jsp")
-                .forward(request, response);
+            .forward(request, response);
             return;
         }
         
-        Role role2 = rs.getRoleDB(role);
+        int role_id = rs.getRoleId(role_name);
+        Role role2 = new Role(role_id, role_name);
+        
         
         us.insert(email, firstname, lastname, password, role2);
+        request.setAttribute("success", "User has been added successfully!");
+        showUsers(request, response);
         getServletContext().getRequestDispatcher("/WEB-INF/users.jsp")
-                .forward(request, response);
+            .forward(request, response);
     }
     
     protected void editUser(HttpServletRequest request, HttpServletResponse response, UserService us, RoleService rs)
@@ -106,13 +129,13 @@ public class UserServlet extends HttpServlet
         
         if (firstname.equals("") || lastname.equals("") || password.equals("") || role.equals(""))
         {
-            request.setAttribute("empty", "Please fill out all the fields");
-            getServletContext().getRequestDispatcher("/WEB-INF/users.jsp")
-                .forward(request, response);
+            request.setAttribute("emptyInput", "Please fill out all the fields");
+            showUsers(request, response);
             return;
         }
         
-        Role role2 = rs.getRoleDB(role);
+        int role_id = rs.getRoleId(role);
+        Role role2 = new Role(role_id, role);
        
         us.update("", firstname, lastname, password, role2);//Add email parameter
         request.setAttribute("action", "add");
@@ -123,10 +146,10 @@ public class UserServlet extends HttpServlet
     protected void deleteUser(HttpServletRequest request, HttpServletResponse response, UserService us, RoleService rs)
             throws ServletException, IOException, Exception
     {
-        User user = new User();//Not proper
-        us.delete(user);//Add email parameter
-        request.setAttribute("action", "add");
-        getServletContext().getRequestDispatcher("/WEB-INF/users.jsp")
-                .forward(request, response);
+        String email = request.getParameter("email");
+        email = email.replace(" ", "+");
+        us.delete(email);
+        request.setAttribute("success", "Deleted the user successfully!");
+        showUsers(request, response);
     }
 }

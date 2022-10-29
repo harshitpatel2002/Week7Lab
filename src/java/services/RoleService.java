@@ -16,9 +16,15 @@ import models.Role;
 public class RoleService
 {
 //    Getting the roles
-    public Role getRoleDB(String name) throws SQLException
+    public int getRoleId(String name) throws SQLException
     {
         RoleDB rdb = new RoleDB();
-        return rdb.get(name);
+        return rdb.getID(name);
+    }
+    
+    public String getRoleName(int id) throws SQLException
+    {
+        RoleDB rdb = new RoleDB();
+        return rdb.getName(id);
     }
 }

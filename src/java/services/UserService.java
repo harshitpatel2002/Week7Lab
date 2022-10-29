@@ -40,8 +40,8 @@ public class UserService
         UserDB.update(user);
     }
     
-    public void delete(User user) throws Exception {
+    public void delete(String email) throws Exception {
         UserDB UserDB = new UserDB();
-        UserDB.delete(user);
+        UserDB.delete(email);
     }
 }
