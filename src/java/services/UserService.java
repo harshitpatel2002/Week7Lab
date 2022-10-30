@@ -22,6 +22,12 @@ public class UserService
         return user;
     }
     
+    public String getPassword(String email) throws Exception{
+        UserDB UserDB = new UserDB();
+        String password = UserDB.getPassword(email);
+        return password;
+    }
+    
     public List<User> getAll() throws Exception {
         UserDB UserDB = new UserDB();
         List<User> users = UserDB.getAll();
@@ -34,8 +40,7 @@ public class UserService
         UserDB.insert(user);
     }
     
-    public void update(String email, String firstname, String lastname, String password, Role role) throws Exception {
-        User user = new User(email, firstname, lastname, password, role);
+    public void update(User user) throws Exception {
         UserDB UserDB = new UserDB();
         UserDB.update(user);
     }

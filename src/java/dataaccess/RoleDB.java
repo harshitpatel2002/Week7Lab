@@ -53,7 +53,7 @@ public class RoleDB
             ps.setInt(1, id);
             rs = ps.executeQuery();
             while (rs.next()) {
-                name = rs.getString(1);
+                name = rs.getString(2);
             }
         } finally {
             DBUtil.closeResultSet(rs);

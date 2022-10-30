@@ -19,7 +19,7 @@ import services.UserService;
  */
 public class UserServlet extends HttpServlet
 {
-    
+    public User updateUserIns = null;
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
@@ -28,7 +28,10 @@ public class UserServlet extends HttpServlet
         {
             showUsers(request, response);
             String action = request.getParameter("action");
-            if (action != null && action.equals("delete"))
+            request.setAttribute("action", action);
+            if (action == null)
+                request.setAttribute("action", "add");
+            else if (action.equals("delete") || action.equals("edit"))
                 doPost(request, response);
         } catch (Exception ex)
         {
@@ -47,7 +50,6 @@ public class UserServlet extends HttpServlet
         RoleService rs = new RoleService();
         
         String action = request.getParameter("action");
-        
         try
         {
             switch (action)
@@ -60,6 +62,12 @@ public class UserServlet extends HttpServlet
                     break;
                 case "delete":
                     deleteUser(request, response, us, rs);
+                    break;
+                case "update":
+                    updateUser(request, response, us, rs);
+                    break;
+                case "cancel":
+                    cancelUser(request, response, us, rs);
                     break;
                 default:
                     break;
@@ -84,7 +92,6 @@ public class UserServlet extends HttpServlet
     protected void addUser(HttpServletRequest request, HttpServletResponse response, UserService us, RoleService rs)
             throws ServletException, IOException, Exception
     {
-        // Taking all the inputs and Adding the user
         String email = request.getParameter("email");
         String firstname = request.getParameter("firstname");
         String lastname = request.getParameter("lastname");
@@ -94,6 +101,7 @@ public class UserServlet extends HttpServlet
         if (email == null || firstname == null || lastname == null || password == null || role_name == null || email.equals("") || firstname.equals("") || lastname.equals("") || password.equals("") || role_name.equals(""))
         {
             request.setAttribute("emptyInput", "Please fill out all the fields");
+            request.setAttribute("action", "add");
             showUsers(request, response);
             getServletContext().getRequestDispatcher("/WEB-INF/users.jsp")
             .forward(request, response);
@@ -106,6 +114,7 @@ public class UserServlet extends HttpServlet
         
         us.insert(email, firstname, lastname, password, role2);
         request.setAttribute("success", "User has been added successfully!");
+        request.setAttribute("action", "add");
         showUsers(request, response);
         getServletContext().getRequestDispatcher("/WEB-INF/users.jsp")
             .forward(request, response);
@@ -114,31 +123,56 @@ public class UserServlet extends HttpServlet
     protected void editUser(HttpServletRequest request, HttpServletResponse response, UserService us, RoleService rs)
             throws ServletException, IOException, Exception
     {
-//        When the user clicks on edit I have to copy the pre added data and copy to the inputs
-//        password
+        String email = request.getParameter("email");
+        email = email.replace(" ", "+");
+        User user = us.get(email);
         
+        request.setAttribute("editUser", user);
         
-        
-        
-        
-//       Taking all the inputs and Adding the edited information
+        getServletContext().getRequestDispatcher("/WEB-INF/users.jsp")
+                .forward(request, response);
+    }
+    
+    protected void updateUser(HttpServletRequest request, HttpServletResponse response, UserService us, RoleService rs)
+            throws ServletException, IOException, Exception
+    {
+        String email = request.getParameter("email");
         String firstname = request.getParameter("firstname");
         String lastname = request.getParameter("lastname");
         String password = request.getParameter("password");
-        String role = request.getParameter("role");
+        String role_name = request.getParameter("role");
         
-        if (firstname.equals("") || lastname.equals("") || password.equals("") || role.equals(""))
+        if (email == null || firstname == null || lastname == null || password == null || role_name == null || email.equals("") || firstname.equals("") || lastname.equals("") || password.equals("") || role_name.equals(""))
         {
             request.setAttribute("emptyInput", "Please fill out all the fields");
+            request.setAttribute("action", "edit");
             showUsers(request, response);
+            getServletContext().getRequestDispatcher("/WEB-INF/users.jsp")
+            .forward(request, response);
             return;
         }
         
-        int role_id = rs.getRoleId(role);
-        Role role2 = new Role(role_id, role);
-       
-        us.update("", firstname, lastname, password, role2);//Add email parameter
+        int role_id = rs.getRoleId(role_name);
+        Role role2 = new Role(role_id, role_name);
+        
+        updateUserIns = new User(email, firstname, lastname, password, role2);
+        
+        // IMP: Program will only update the user if the password is correct
+        String dbPassword = us.getPassword(email);
+        
+        if (!password.equals(dbPassword)){
+            request.setAttribute("emptyInput", "Please enter the correct password");
+            request.setAttribute("action", "edit");
+            showUsers(request, response);
+            getServletContext().getRequestDispatcher("/WEB-INF/users.jsp")
+            .forward(request, response);
+            return;
+        }
+        
+        us.update(updateUserIns);
+        request.setAttribute("success", "Updated the user information having email " +updateUserIns.getEmail());
         request.setAttribute("action", "add");
+        showUsers(request, response);
         getServletContext().getRequestDispatcher("/WEB-INF/users.jsp")
                 .forward(request, response);
     }
@@ -150,6 +184,16 @@ public class UserServlet extends HttpServlet
         email = email.replace(" ", "+");
         us.delete(email);
         request.setAttribute("success", "Deleted the user successfully!");
+        request.setAttribute("action", "add");
         showUsers(request, response);
+    }
+    
+        protected void cancelUser(HttpServletRequest request, HttpServletResponse response, UserService us, RoleService rs)
+            throws ServletException, IOException, Exception
+    {
+        request.setAttribute("action", "add");
+        showUsers(request, response);
+        getServletContext().getRequestDispatcher("/WEB-INF/users.jsp")
+                .forward(request, response);
     }
 }

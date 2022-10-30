@@ -33,50 +33,57 @@
                         <td>${user.firstname}</td>
                         <td>${user.lastname}</td>
                         <td>${user.getRole().getName()}</td>
-                        <td><a href="users?action='edit'">Edit</a></td>
-                        <!--<td><a href="users?action='delete'&&">Delete</a></td>-->
+                        <td><a href="users?action=edit&amp;email=${user.email}">Edit</a></td>
                         <td><a href="users?action=delete&amp;email=${user.email}">Delete</a></td>
                     </tr>
                 </c:forEach> 
             </table>
         </c:if>
-
-        <h1>Add User</h1>
-        <form action="users" method="post">
-            Email: <input type="text" value="" name="email"><br><br>
-            First name: <input type="text" value="" name="firstname"><br><br>
-            Last name: <input type="text" value="" name="lastname"><br><br>
-            Password: <input type="password" value="" name="password"><br><br>
-            Role: 
-            <select name="role" id="role">
-                <option value="system admin">system admin</option>
-                <option value="regular user">regular user</option>
-            </select> 
-            <br><br>
-            <input type="hidden" name="action" value="add">
-            <input type="submit" class="button" value="Add user">
-        </form>
-        <p style="color: red">${emptyInput}</p>
         
-
-
-        <c:if test="${action eq edit}">
-<!--            <h1>Edit User</h1>
+        <c:if test="${action eq 'add'}">
+            <h1>Add User</h1>
             <form action="users" method="post">
-                Email ${user.email}<br><br>
-                First name: <input type="text" value=""><br><br>
-                Last name: <input type="text" value=""><br><br>
-                Password: <input type="password" value="" readonly><br><br>
+                Email: <input type="text" value="" name="email"><br><br>
+                First name: <input type="text" value="" name="firstname"><br><br>
+                Last name: <input type="text" value="" name="lastname"><br><br>
+                Password: <input type="password" value="" name="password"><br><br>
                 Role: 
-                <select name="userRole" id="role">
-                    <option value="systemadmin">system admin</option>
-                    <option value="regularuser">regular user</option>
+                <select name="role" id="role">
+                    <option value="system admin">system admin</option>
+                    <option value="regular user">regular user</option>
                 </select> 
                 <br><br>
-                <input type="submit" class="button" value="Update">
-                <input type="submit" class="button" value="Cancel">
-            </form>-->
+                <input type="hidden" name="action" value="add">
+                <input type="submit" class="button" value="Add user">
+            </form>
         </c:if>
 
+
+        <c:if test="${action eq 'edit'}">
+            <h1>Edit User</h1>
+            <form action="users" method="post">
+                Email: <input type="text" name="email" value="${editUser.email}" readonly=""><br><br>
+                First name: <input type="text" name="firstname" value="${editUser.firstname}"><br><br>
+                Last name: <input type="text" name="lastname" value="${editUser.lastname}"><br><br>
+                Password: <input type="password" name="password" value=""><br><br>
+                Role: 
+                <select name="role" id="role">
+                    <c:if test="${editUser.role.name eq 'system admin'}">
+                        <option value="system admin" selected="selected">system admin</option>
+                        <option value="regular user">regular user</option>
+                    </c:if>
+                    <c:if test="${editUser.role.name eq 'regular user'}">
+                        <option value="regular user" selected="selected">regular user</option>
+                        <option value="system admin">system admin</option>
+                    </c:if>
+                </select> 
+                <br><br>
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="actionC" value="cancel">
+                <input type="submit" class="button" value="Update">
+                <input type="submit" class="button" value="Cancel">
+            </form>
+        </c:if>
+        <p style="color: red">${emptyInput}</p>
     </body>
 </html>

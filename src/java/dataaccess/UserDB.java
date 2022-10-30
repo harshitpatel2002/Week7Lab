@@ -68,13 +68,13 @@ public class UserDB
         Connection con = cp.getConnection();
         PreparedStatement ps = null;
         ResultSet rs = null;
-        String sql = "SELECT * FROM user WHERE email='?'";
+        String sql = "SELECT * FROM user WHERE email=?";
         
         try {
             ps = con.prepareStatement(sql);
             ps.setString(1, email);
             rs = ps.executeQuery();
-            if (rs.next()) {
+            while (rs.next()) {
                 String firstname = rs.getString(2);
                 String lastname = rs.getString(3);
                 String password = rs.getString(4);
@@ -95,6 +95,30 @@ public class UserDB
         return user;
     }
     
+    public String getPassword(String email) throws SQLException
+    {
+        ConnectionPool cp = ConnectionPool.getInstance();
+        Connection con = cp.getConnection();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        String sql = "SELECT password FROM user WHERE email=?";
+        String password = "";
+        try {
+            ps = con.prepareStatement(sql);
+            ps.setString(1, email);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                password = rs.getString(1);
+            }
+        } finally {
+            DBUtil.closeResultSet(rs);
+            DBUtil.closePreparedStatement(ps);
+            cp.freeConnection(con);
+        }
+        
+        return password;
+    }
+    
     public void insert(User user) throws Exception {
         ConnectionPool cp = ConnectionPool.getInstance();
         Connection con = cp.getConnection();
@@ -108,7 +132,7 @@ public class UserDB
             ps.setString(2, user.getFirstname());
             ps.setString(3, user.getLastname());
             ps.setString(4, user.getPassword());
-            ps.setInt(5, user.getRole().getId());//error lies over here
+            ps.setInt(5, user.getRole().getId());
             ps.executeUpdate();
         } finally {
             DBUtil.closePreparedStatement(ps);
@@ -120,7 +144,7 @@ public class UserDB
         ConnectionPool cp = ConnectionPool.getInstance();
         Connection con = cp.getConnection();
         PreparedStatement ps = null;
-        String sql = "UPDATE user SET email=?, first_name=?, last_name=?, password=?, role=?,  WHERE note_id=?";
+        String sql = "UPDATE user SET email=?, first_name=?, last_name=?, password=?, role=? WHERE email=?";
         
         try {
             ps = con.prepareStatement(sql);
@@ -129,6 +153,7 @@ public class UserDB
             ps.setString(3, user.getLastname());
             ps.setString(4, user.getPassword());
             ps.setInt(5, user.getRole().getId());
+            ps.setString(6, user.getEmail());
             ps.executeUpdate();
         } finally {
             DBUtil.closePreparedStatement(ps);
