@@ -78,10 +78,8 @@
                     </c:if>
                 </select> 
                 <br><br>
-                <input type="hidden" name="action" value="update">
-                <input type="hidden" name="actionC" value="cancel">
-                <input type="submit" class="button" value="Update">
-                <input type="submit" class="button" value="Cancel">
+                <input type="submit" class="button" value="Update" name="action">
+                <input type="submit" class="button" value="Cancel" name="action">
             </form>
         </c:if>
         <p style="color: red">${emptyInput}</p>

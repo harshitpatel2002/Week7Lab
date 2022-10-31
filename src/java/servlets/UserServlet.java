@@ -63,10 +63,10 @@ public class UserServlet extends HttpServlet
                 case "delete":
                     deleteUser(request, response, us, rs);
                     break;
-                case "update":
+                case "Update":
                     updateUser(request, response, us, rs);
                     break;
-                case "cancel":
+                case "Cancel":
                     cancelUser(request, response, us, rs);
                     break;
                 default:
